@@ -2,6 +2,7 @@
 Workshop designing APIs
 -Have sql management studio/preferred db access tool with the local db instance
 - Updated prefered IDE
+- Postman or a similar tool
 - Docker installed
    - RabbitMQ
      ```
