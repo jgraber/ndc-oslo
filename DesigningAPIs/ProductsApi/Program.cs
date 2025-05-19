@@ -50,15 +50,7 @@ namespace ProductsApi
                     options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                     options.QueueLimit = 0;
                 });
-
-                options
-               .AddFixedWindowLimiter(policyName: "fixed2", options =>
-               {
-                   options.PermitLimit = 3;
-                   options.Window = TimeSpan.FromSeconds(30);
-                   options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                   options.QueueLimit = 0;
-               });
+           
             });
 
 
