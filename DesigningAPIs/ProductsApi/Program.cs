@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using ProductsApi.Data;
 using ProductsApi.Data.Repositories;
+using ProductsApi.Infrastructure.Mappings;
 using ProductsApi.Service;
 
 namespace ProductsApi
@@ -22,9 +23,10 @@ namespace ProductsApi
 
             builder.Services.AddDbContext<ProductContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+            builder.Services.AddAutoMapper(typeof(ProductProfileMapping).Assembly);
          
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IProductService, ProductService>();
          
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
