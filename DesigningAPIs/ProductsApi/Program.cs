@@ -1,10 +1,14 @@
 
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ProductsApi.Data;
 using ProductsApi.Data.Repositories;
+using ProductsApi.Mappings;
 using ProductsApi.Service;
 
 namespace ProductsApi
@@ -29,6 +33,27 @@ namespace ProductsApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(ProductProfileMapping).Assembly);
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddSingleton<IMemoryCache>(new MemoryCache(
+                new MemoryCacheOptions
+                {
+                    TrackStatistics = true,
+                    SizeLimit = 50 // Products.
+                }));
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = 429;
+                options
+                    .AddFixedWindowLimiter(policyName: "fixed", options =>
+                    {
+                        options.PermitLimit = 3;
+                        options.Window = TimeSpan.FromSeconds(12);
+                        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                        options.QueueLimit = 0;
+                    });
+            });
+
 
             var app = builder.Build();
 
@@ -51,7 +76,7 @@ namespace ProductsApi
 
             app.UseAuthorization();
 
-
+            app.UseRateLimiter();
             app.MapControllers();
 
             app.Run();

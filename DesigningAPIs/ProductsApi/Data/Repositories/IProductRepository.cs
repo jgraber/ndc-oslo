@@ -1,4 +1,5 @@
 ﻿using ProductsApi.Data.Entities;
+using ProductsApi.Data.Extensions;
 
 namespace ProductsApi.Data.Repositories
 {
@@ -10,5 +11,6 @@ namespace ProductsApi.Data.Repositories
         Task<IEnumerable<Product>> GetProductsAsync();
         Task<bool> ProductExistsAsync(int id);
         Task<Product> UpdateProductAsync(Product product);
+        Task<IEnumerable<ProductStock>> GetProductStocksAsync(List<int> productIds);
     }
 }

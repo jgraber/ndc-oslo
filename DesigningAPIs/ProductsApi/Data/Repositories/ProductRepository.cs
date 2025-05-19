@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductsApi.Data.Entities;
+using ProductsApi.Data.Extensions;
 
 namespace ProductsApi.Data.Repositories
 {
@@ -49,6 +50,40 @@ namespace ProductsApi.Data.Repositories
         public async Task<bool> ProductExistsAsync(int id)
         {
             return await _context.Products.AnyAsync(e => e.Id == id);
+        }
+
+
+        public async Task<IEnumerable<ProductStock>> GetProductStocksAsync(List<int> productIds)
+        {
+            var stocks = await _context.Products.Where(p => productIds.Contains(p.Id)).Select(x => new ProductStock
+            {
+                Stock = x.Stock,
+                ProductId = x.Id
+            }).ToListAsync();
+            return stocks;
+        }
+
+        public async Task<IEnumerable<ProductStock>> UpdateProductStocks(Dictionary<int, int> productStocks)
+        {
+            foreach (var kvp in productStocks)
+            {
+                var product = await _context.Products.FindAsync(kvp.Key);
+                if (product != null)
+                {
+                    product.Stock = kvp.Value;
+                    _context.Entry(product).State = EntityState.Modified;
+                }
+            }
+            await _context.SaveChangesAsync();
+            var updatedStocks = await _context.Products
+                .Where(p => productStocks.ContainsKey(p.Id))
+                .Select(x => new ProductStock
+                {
+                    Stock = x.Stock,
+                    ProductId = x.Id
+                })
+                .ToListAsync();
+            return updatedStocks;
         }
     }
 }
