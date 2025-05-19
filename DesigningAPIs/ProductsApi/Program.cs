@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ProductsApi.Data;
 using ProductsApi.Data.Repositories;
 using ProductsApi.Infrastructure.Mappings;
@@ -27,13 +28,24 @@ namespace ProductsApi
          
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IProductService, ProductService>();
-         
+
+            builder.Services.AddSingleton<IMemoryCache>(new MemoryCache(
+              new MemoryCacheOptions
+              {
+                  TrackStatistics = true,                  
+                  SizeLimit = 50 // Products.
+                 
+              }));
+
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddResponseCaching();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
-
+            app.UseResponseCaching();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
