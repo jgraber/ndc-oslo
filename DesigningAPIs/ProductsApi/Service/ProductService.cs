@@ -1,4 +1,5 @@
 ﻿using ProductsApi.Data.Entities;
+using ProductsApi.Data.Extensions;
 using ProductsApi.Data.Repositories;
 
 namespace ProductsApi.Service
@@ -40,6 +41,10 @@ namespace ProductsApi.Service
         public async Task<bool> ProductExistsAsync(int id)
         {
             return await _productRepository.ProductExistsAsync(id);
+        }
+        public async Task<IEnumerable<ProductStock>> GetProductsStocksAsync(List<int> productsIds)
+        {
+            return await _productRepository.GetProductStocksAsync(productsIds);
         }
     }
 }
