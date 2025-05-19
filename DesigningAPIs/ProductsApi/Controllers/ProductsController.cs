@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -74,10 +75,11 @@ namespace ProductsApi.Controllers
 
 
         [HttpGet]
-        [ResponseCache(Duration = 30, // Cache-Control: max-age=5
-          Location = ResponseCacheLocation.Any, // Cache-Control: public
-          VaryByHeader = "User-Agent" // Vary: User-Agent
-          )]
+        //[ResponseCache(Duration = 30, // Cache-Control: max-age=5
+        //  Location = ResponseCacheLocation.Any, // Cache-Control: public
+        //  VaryByHeader = "User-Agent" // Vary: User-Agent
+        //  )]
+        [EnableRateLimiting("fixed")]
         public async Task<IActionResult> GetProducts()
         {
             var products = await _productService.GetProductsAsync();

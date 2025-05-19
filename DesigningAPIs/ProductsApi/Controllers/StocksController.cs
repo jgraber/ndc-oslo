@@ -18,6 +18,7 @@ namespace ProductsApi.Controllers
 
 
         [HttpGet]
+        [EnableRateLimiting("fixed")]
         public async Task<IActionResult> GetProductsStocks([FromQuery] List<int> productIds)
         {
             // Create a Random object

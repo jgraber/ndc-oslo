@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using ProductsApi.Data;
 using ProductsApi.Data.Repositories;
 using ProductsApi.Infrastructure.Mappings;
 using ProductsApi.Service;
+using System.Threading.RateLimiting;
 
 namespace ProductsApi
 {
@@ -25,17 +27,40 @@ namespace ProductsApi
             builder.Services.AddDbContext<ProductContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddAutoMapper(typeof(ProductProfileMapping).Assembly);
-         
+
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IProductService, ProductService>();
 
             builder.Services.AddSingleton<IMemoryCache>(new MemoryCache(
               new MemoryCacheOptions
               {
-                  TrackStatistics = true,                  
+                  TrackStatistics = true,
                   SizeLimit = 50 // Products.
-                 
+
               }));
+
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // 429;
+                options
+                .AddFixedWindowLimiter(policyName: "fixed", options =>
+                {
+                    options.PermitLimit = 3;
+                    options.Window = TimeSpan.FromSeconds(30);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 0;
+                });
+
+                options
+               .AddFixedWindowLimiter(policyName: "fixed2", options =>
+               {
+                   options.PermitLimit = 3;
+                   options.Window = TimeSpan.FromSeconds(30);
+                   options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                   options.QueueLimit = 0;
+               });
+            });
+
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddResponseCaching();
@@ -46,6 +71,7 @@ namespace ProductsApi
 
             var app = builder.Build();
             app.UseResponseCaching();
+            app.UseRateLimiter();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
