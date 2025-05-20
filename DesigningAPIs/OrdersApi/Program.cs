@@ -1,7 +1,9 @@
 
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using OrdersApi.Consumers;
 using OrdersApi.Data;
 using OrdersApi.Data.Repositories;
 using OrdersApi.Infrastructure;
@@ -34,7 +36,36 @@ namespace OrdersApi
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-           
+
+
+            builder.Services.AddMassTransit(x =>
+            {
+                // Step 1: Register Consumers
+                x.AddConsumer<OrderCreatedConsumer>();
+
+                // Step 2: Select a Transport
+                x.UsingRabbitMq((context, cfg) => {
+                    // Step 3: Configure the Transport
+
+                    // Step 4: Configure Endpoints
+                    // All consumers registered in step 1, will get
+                    // default endpoints created.
+                    cfg.ConfigureEndpoints(context);
+                });
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
             builder.Services.AddHttpClient<IProductStockServiceClient, ProductStockServiceClient>()
                 .AddResilienceHandler("retry-policy", options =>
                 {

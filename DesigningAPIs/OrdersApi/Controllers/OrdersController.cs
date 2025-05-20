@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Contracts.Events;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OrdersApi.Data.Domain;
@@ -17,17 +19,22 @@ namespace OrdersApi.Controllers
         // private readonly IProductStockServiceClient _productStockServiceClient;
         private readonly IMapper _mapper;
         private readonly Greeter.GreeterClient grpcClient;
+        private readonly IPublishEndpoint publishEndpoint;
+
+
 
 
         public OrdersController(IOrderService orderService,
             //IProductStockServiceClient productStockServiceClient,
             IMapper mapper,
-            Greeter.GreeterClient grpcClient
+            Greeter.GreeterClient grpcClient,
+            IPublishEndpoint publishEndpoint
             )
         {
 
             _orderService = orderService;
             this.grpcClient = grpcClient;
+            this.publishEndpoint = publishEndpoint;
             // _productStockServiceClient = productStockServiceClient;
             _mapper = mapper;
         }
@@ -35,16 +42,16 @@ namespace OrdersApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(OrderModel model)
         {
-            var stockRequest = new StockRequest();
-            stockRequest.ProductId.AddRange
-                (model.OrderItems.Select(p => p.ProductId).ToList());
 
-            var stockResponse = await grpcClient.GetStockAsync(stockRequest);
-
-            //To do: Verify stock 
             var orderToAdd = _mapper.Map<Order>(model);
             var createdOrder = await _orderService.AddOrderAsync(orderToAdd);
-            // Diminish stock
+            //notify an OrderCreated event
+
+            var notifyOrderCreated = publishEndpoint.Publish(new OrderCreated()
+            {
+                CreatedAt = createdOrder.OrderDate,
+                OrderId = createdOrder.Id
+            });
 
             return CreatedAtAction("GetOrder", new { id = createdOrder.Id }, createdOrder);
         }
