@@ -38,30 +38,12 @@ namespace OrdersApi
             builder.Services.AddHttpClient<IProductStockServiceClient, ProductStockServiceClient>()
                 .AddResilienceHandler("retry-policy", options =>
                 {
-                    // Configure standard resilience options here
-                    //options.AddRetry(new HttpRetryStrategyOptions
-                    //{
-                    //    MaxRetryAttempts = 4,
-                    //    Delay = TimeSpan.FromSeconds(2),
-                    //    BackoffType = DelayBackoffType.Exponentia
-
-                    //});
-
-                    //options.AddHedging(new HedgingStrategyOptions<HttpResponseMessage>()
-                    //{
-                    //    MaxHedgedAttempts = 3,
-                    //    ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-                    //    .Handle<ArgumentOutOfRangeException>()
-                    //    .HandleResult(response => response.StatusCode == HttpStatusCode.InternalServerError),
-                    //                        Delay = TimeSpan.FromSeconds(1),
-                    //});
-
-                   // options.AddTimeout(TimeSpan.FromSeconds(5));
-
-
                 });
 
-
+            builder.Services.AddGrpcClient<Stocks.Greeter.GreeterClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:7265");
+            });
 
 
             builder.Services.AddEndpointsApiExplorer();

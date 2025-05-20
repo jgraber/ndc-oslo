@@ -5,6 +5,7 @@ using OrdersApi.Data.Domain;
 using OrdersApi.Models;
 using OrdersApi.Service.Clients;
 using OrdersApi.Services;
+using Stocks;
 
 namespace OrdersApi.Controllers
 {
@@ -13,24 +14,32 @@ namespace OrdersApi.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
-        private readonly IProductStockServiceClient _productStockServiceClient;
+        // private readonly IProductStockServiceClient _productStockServiceClient;
         private readonly IMapper _mapper;
+        private readonly Greeter.GreeterClient grpcClient;
+
 
         public OrdersController(IOrderService orderService,
-            IProductStockServiceClient productStockServiceClient,
-            IMapper mapper)
+            //IProductStockServiceClient productStockServiceClient,
+            IMapper mapper,
+            Greeter.GreeterClient grpcClient
+            )
         {
+
             _orderService = orderService;
-            _productStockServiceClient = productStockServiceClient;
+            this.grpcClient = grpcClient;
+            // _productStockServiceClient = productStockServiceClient;
             _mapper = mapper;
         }
 
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(OrderModel model)
         {
-            var stocks = await _productStockServiceClient.GetStock(
-                model.OrderItems.Select(p => p.ProductId).ToList());
+            var stockRequest = new StockRequest();
+            stockRequest.ProductId.AddRange
+                (model.OrderItems.Select(p => p.ProductId).ToList());
 
+            var stockResponse = await grpcClient.GetStockAsync(stockRequest);
 
             //To do: Verify stock 
             var orderToAdd = _mapper.Map<Order>(model);
