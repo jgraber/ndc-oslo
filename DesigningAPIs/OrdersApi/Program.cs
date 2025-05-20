@@ -13,6 +13,7 @@ using OrdersApi.Services;
 using Polly;
 using Polly.Hedging;
 using System.Net;
+using System.Reflection;
 
 namespace OrdersApi
 {
@@ -31,7 +32,7 @@ namespace OrdersApi
 
             builder.Services.AddAutoMapper(typeof(OrderProfileMapping).Assembly);
             builder.Services.AddDbContext<OrderContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
+
 
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderService, OrderService>();
@@ -43,8 +44,12 @@ namespace OrdersApi
                 // Step 1: Register Consumers
                 x.AddConsumer<OrderCreatedConsumer>();
 
+                var entryAssembly = Assembly.GetEntryAssembly();
+                x.AddConsumers(entryAssembly);
+
                 // Step 2: Select a Transport
-                x.UsingRabbitMq((context, cfg) => {
+                x.UsingRabbitMq((context, cfg) =>
+                {
                     // Step 3: Configure the Transport
 
                     // Step 4: Configure Endpoints
@@ -80,7 +85,7 @@ namespace OrdersApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            var app = builder.Build();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
