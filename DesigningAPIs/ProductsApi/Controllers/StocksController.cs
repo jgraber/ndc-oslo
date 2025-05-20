@@ -24,12 +24,12 @@ namespace ProductsApi.Controllers
             // Create a Random object
             Random random = new Random();
 
-            // Generate a random number between 0 and 100
-            //int number = random.Next(0, 101);
-            //if (number % 2 == 0)
-            //{
-            //    throw new ArgumentOutOfRangeException("BOOM! A failure occurred");
-            //}
+          //  Generate a random number between 0 and 100
+            int number = random.Next(0, 101);
+            if (number % 2 == 0)
+            {
+               // throw new ArgumentOutOfRangeException("BOOM! A failure occurred");
+            }
 
             var products = await productService.GetProductsStocksAsync(productIds);
             return Ok(products);
