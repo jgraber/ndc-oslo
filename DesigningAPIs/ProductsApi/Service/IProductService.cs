@@ -11,6 +11,6 @@ namespace ProductsApi.Service
         Task<IEnumerable<Product>> GetProductsAsync();
         Task<Product> UpdateProductAsync(Product product);
         Task<bool> ProductExistsAsync(int id);
-        Task<IEnumerable<ProductStock>> GetProductStocksAsync(List<int> productIds);
+        Task<IEnumerable<ProductStock>> GetProductsStocksAsync(List<int> productsIds);
     }
 }

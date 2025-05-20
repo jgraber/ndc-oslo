@@ -19,7 +19,7 @@ namespace ProductsApi.Controllers
         [EnableRateLimiting("fixed")]
         public async Task<IActionResult> GetProductsStocks([FromQuery] List<int> productIds)
         {
-            var products = await productService.GetProductStocksAsync(productIds);
+            var products = await productService.GetProductsStocksAsync(productIds);
             return Ok(products);
             ///TODO: add mappings and use the Model
             ///

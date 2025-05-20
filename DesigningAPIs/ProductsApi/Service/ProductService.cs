@@ -43,10 +43,9 @@ namespace ProductsApi.Service
             return await _productRepository.ProductExistsAsync(id);
         }
 
-
-        public async Task<IEnumerable<ProductStock>> GetProductStocksAsync(List<int> productIds)
+        public async Task<IEnumerable<ProductStock>> GetProductsStocksAsync(List<int> productsIds)
         {
-            return await _productRepository.GetProductStocksAsync(productIds);
+            return await _productRepository.GetProductStocksAsync(productsIds);
         }
     }
 }
