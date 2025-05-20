@@ -43,6 +43,10 @@ namespace OrdersApi
                         BackoffType = DelayBackoffType.Exponential
                     });
                 });
+            builder.Services.AddGrpcClient<Stocks.Greeter.GreeterClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:7277");
+            });
 
 
             var app = builder.Build();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           

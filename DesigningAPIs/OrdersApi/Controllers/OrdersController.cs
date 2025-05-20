@@ -5,6 +5,8 @@ using OrdersApi.Data.Domain;
 using OrdersApi.Models;
 using OrdersApi.Service.Clients;
 using OrdersApi.Services;
+using Stocks;
+using ProductStock = OrdersApi.Service.Clients.ProductStock;
 
 namespace OrdersApi.Controllers
 {
@@ -15,14 +17,17 @@ namespace OrdersApi.Controllers
         private readonly IOrderService _orderService;
         private readonly IProductStockServiceClient _productStockServiceClient;
         private readonly IMapper _mapper;
+        private readonly Greeter.GreeterClient grpcClient;
 
         public OrdersController(IOrderService orderService,
             IProductStockServiceClient productStockServiceClient,
-            IMapper mapper)
+            IMapper mapper,
+            Stocks.Greeter.GreeterClient grpcClient)
         {
             _orderService = orderService;
             _productStockServiceClient = productStockServiceClient;
             _mapper = mapper;
+            this.grpcClient = grpcClient;
         }
 
         [HttpGet]
@@ -76,11 +81,15 @@ namespace OrdersApi.Controllers
         {
             var stocks = await _productStockServiceClient.GetStock(
                 model.OrderItems.Select(p => p.ProductId).ToList());
+            
+            var stockRequest = new StockRequest();
+            stockRequest.ProductId.AddRange(model.OrderItems.Select(p => p.ProductId).ToList());
 
+            var stockResponse = await grpcClient.GetStockAsync(stockRequest);
 
             //To do: Verify stock 
             // Verify if all products have stock
-            if (!await VerifyStocks(stocks, model.OrderItems))
+            if (!await VerifyStocks(stockResponse, model.OrderItems))
             {
                 // Add model state error: "Sorry, we can't process your order, we don't have enough stock for item."
                 ModelState.AddModelError("StockError", "Sorry, we can't process your order due to insufficient stock.");
@@ -120,11 +129,11 @@ namespace OrdersApi.Controllers
             return Ok(order);
         }
 
-        private async Task<bool> VerifyStocks(List<ProductStock> stocks, List<OrderItemModel> orderItems)
+        private async Task<bool> VerifyStocks(ProductStockList stocks, List<OrderItemModel> orderItems)
         {
             foreach (var item in orderItems)
             {
-                var stock = stocks.FirstOrDefault(s => s.ProductId == item.ProductId);
+                var stock = stocks.Products.FirstOrDefault(s => s.ProductId == item.ProductId);
                 if (stock == null || stock.Stock < item.Quantity)
                 {
                     return false;
