@@ -1,6 +1,8 @@
 
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Http.Resilience;
+using OrdersApi.Consumers;
 using OrdersApi.Data;
 using OrdersApi.Data.Repositories;
 using OrdersApi.Mappings;
@@ -47,6 +49,21 @@ namespace OrdersApi
             {
                 o.Address = new Uri("https://localhost:7277");
             });
+
+            builder.Services.AddMassTransit(x =>
+            {
+                x.AddConsumer<OrderCreatedConsumer>();
+                // Step 2: Select a Transport
+                x.UsingRabbitMq((context, cfg) => {
+                    // Step 3: Configure the Transport
+
+                    // Step 4: Configure Endpoints
+                    // All consumers registered in step 1, will get
+                    // default endpoints created.
+                    cfg.ConfigureEndpoints(context);
+                });
+            });
+
 
 
             var app = builder.Build();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
